@@ -1,0 +1,349 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="AshaERPModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="WMInv_Part">
+          <Key>
+            <PropertyRef Name="Code" />
+          </Key>
+          <Property Name="Code" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="1024" Nullable="false" />
+          <Property Name="Barcode" Type="nvarchar" MaxLength="64" />
+          <Property Name="CommercialTitle" Type="nvarchar" MaxLength="1024" />
+          <Property Name="LatinTitle" Type="nvarchar" MaxLength="1024" />
+          <Property Name="UnitOfMeasureCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="PartTypeCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="PartStatusCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="SubstitutePartCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="StandardCost" Type="decimal" Precision="32" Scale="10" />
+          <Property Name="InventoryProperty" Type="bit" />
+          <Property Name="PurchasingProperty" Type="bit" />
+          <Property Name="EngineeringProperty" Type="bit" />
+          <Property Name="ManufacturingProperty" Type="bit" />
+          <Property Name="SalesProperty" Type="bit" />
+          <Property Name="QCProperty" Type="bit" />
+          <Property Name="ConsumptionPlace" Type="nvarchar" MaxLength="64" />
+          <Property Name="UnitValue" Type="decimal" Precision="32" Scale="10" />
+          <Property Name="PackingBoxRatio" Type="decimal" Precision="32" Scale="10" />
+          <Property Name="CreatorCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="CreationDate" Type="datetime" Nullable="false" />
+          <Property Name="Note" Type="nvarchar(max)" />
+          <Property Name="Picture" Type="image" />
+          <Property Name="Guid" Type="uniqueidentifier" />
+        </EntityType>
+        <EntityType Name="WMInv_PartInventoryProperty">
+          <Key>
+            <PropertyRef Name="PartCode" />
+          </Key>
+          <Property Name="PartCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="1024" StoreGeneratedPattern="Computed" />
+          <Property Name="InventoryCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="InventorySequenceCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="InventoryABCCategoryCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="MainInventory" Type="bit" />
+          <Property Name="LotControl" Type="bit" Nullable="false" />
+          <Property Name="ActiveQuantityBaseStock" Type="bit" Nullable="false" />
+          <Property Name="CreatorCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="CreationDate" Type="datetime" Nullable="false" />
+          <Property Name="Note" Type="nvarchar(max)" />
+          <Property Name="Guid" Type="uniqueidentifier" />
+        </EntityType>
+        <EntityType Name="WMInv_PartSerial">
+          <Key>
+            <PropertyRef Name="Code" />
+          </Key>
+          <Property Name="Code" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="PartCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="ParentPartSerialCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="ParentPartCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="WorkOrderCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="PurchaseShipmentCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="SalesShipmentCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="StatusCode" Type="nvarchar" MaxLength="64" />
+          <Property Name="CreatorCode" Type="nvarchar" MaxLength="64" Nullable="false" />
+          <Property Name="CreationDate" Type="datetime" Nullable="false" />
+          <Property Name="Note" Type="nvarchar(max)" />
+          <Property Name="Guid" Type="uniqueidentifier" />
+        </EntityType>
+        <Association Name="FK_WMInv_Part_WMInv_Part">
+          <End Role="WMInv_Part" Type="Self.WMInv_Part" Multiplicity="0..1" />
+          <End Role="WMInv_Part1" Type="Self.WMInv_Part" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WMInv_Part">
+              <PropertyRef Name="Code" />
+            </Principal>
+            <Dependent Role="WMInv_Part1">
+              <PropertyRef Name="SubstitutePartCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WMInv_PartInventoryProperty_WMInv_Part">
+          <End Role="WMInv_Part" Type="Self.WMInv_Part" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="WMInv_PartInventoryProperty" Type="Self.WMInv_PartInventoryProperty" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="WMInv_Part">
+              <PropertyRef Name="Code" />
+            </Principal>
+            <Dependent Role="WMInv_PartInventoryProperty">
+              <PropertyRef Name="PartCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WMInv_PartSerialNumber_WMInv_Part">
+          <End Role="WMInv_Part" Type="Self.WMInv_Part" Multiplicity="1" />
+          <End Role="WMInv_PartSerial" Type="Self.WMInv_PartSerial" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WMInv_Part">
+              <PropertyRef Name="Code" />
+            </Principal>
+            <Dependent Role="WMInv_PartSerial">
+              <PropertyRef Name="PartCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AshaERPModelStoreContainer">
+          <EntitySet Name="WMInv_Part" EntityType="Self.WMInv_Part" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="WMInv_PartInventoryProperty" EntityType="Self.WMInv_PartInventoryProperty" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="WMInv_PartSerial" EntityType="Self.WMInv_PartSerial" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_WMInv_Part_WMInv_Part" Association="Self.FK_WMInv_Part_WMInv_Part">
+            <End Role="WMInv_Part" EntitySet="WMInv_Part" />
+            <End Role="WMInv_Part1" EntitySet="WMInv_Part" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WMInv_PartInventoryProperty_WMInv_Part" Association="Self.FK_WMInv_PartInventoryProperty_WMInv_Part">
+            <End Role="WMInv_Part" EntitySet="WMInv_Part" />
+            <End Role="WMInv_PartInventoryProperty" EntitySet="WMInv_PartInventoryProperty" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WMInv_PartSerialNumber_WMInv_Part" Association="Self.FK_WMInv_PartSerialNumber_WMInv_Part">
+            <End Role="WMInv_Part" EntitySet="WMInv_Part" />
+            <End Role="WMInv_PartSerial" EntitySet="WMInv_PartSerial" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="AshaERPModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="WMInv_Part">
+          <Key>
+            <PropertyRef Name="Code" />
+          </Key>
+          <Property Name="Code" Type="String" MaxLength="64" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Title" Type="String" MaxLength="1024" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Barcode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="CommercialTitle" Type="String" MaxLength="1024" FixedLength="false" Unicode="true" />
+          <Property Name="LatinTitle" Type="String" MaxLength="1024" FixedLength="false" Unicode="true" />
+          <Property Name="UnitOfMeasureCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="PartTypeCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="PartStatusCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="SubstitutePartCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="StandardCost" Type="Decimal" Precision="32" Scale="10" />
+          <Property Name="InventoryProperty" Type="Boolean" />
+          <Property Name="PurchasingProperty" Type="Boolean" />
+          <Property Name="EngineeringProperty" Type="Boolean" />
+          <Property Name="ManufacturingProperty" Type="Boolean" />
+          <Property Name="SalesProperty" Type="Boolean" />
+          <Property Name="QCProperty" Type="Boolean" />
+          <Property Name="ConsumptionPlace" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="UnitValue" Type="Decimal" Precision="32" Scale="10" />
+          <Property Name="PackingBoxRatio" Type="Decimal" Precision="32" Scale="10" />
+          <Property Name="CreatorCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Note" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Picture" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="Guid" Type="Guid" />
+          <NavigationProperty Name="WMInv_Part1" Relationship="Self.FK_WMInv_Part_WMInv_Part" FromRole="WMInv_Part" ToRole="WMInv_Part1" />
+          <NavigationProperty Name="WMInv_Part2" Relationship="Self.FK_WMInv_Part_WMInv_Part" FromRole="WMInv_Part1" ToRole="WMInv_Part" />
+          <NavigationProperty Name="WMInv_PartInventoryProperty" Relationship="AshaERPModel.FK_WMInv_PartInventoryProperty_WMInv_Part" FromRole="WMInv_Part" ToRole="WMInv_PartInventoryProperty" />
+          <NavigationProperty Name="WMInv_PartSerial" Relationship="AshaERPModel.FK_WMInv_PartSerialNumber_WMInv_Part" FromRole="WMInv_Part" ToRole="WMInv_PartSerial" />
+        </EntityType>
+        <Association Name="FK_WMInv_Part_WMInv_Part">
+          <End Role="WMInv_Part" Type="Self.WMInv_Part" Multiplicity="0..1" />
+          <End Role="WMInv_Part1" Type="Self.WMInv_Part" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WMInv_Part">
+              <PropertyRef Name="Code" />
+            </Principal>
+            <Dependent Role="WMInv_Part1">
+              <PropertyRef Name="SubstitutePartCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AshaERPEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="WMInv_Part" EntityType="Self.WMInv_Part" />
+          <AssociationSet Name="FK_WMInv_Part_WMInv_Part" Association="Self.FK_WMInv_Part_WMInv_Part">
+            <End Role="WMInv_Part" EntitySet="WMInv_Part" />
+            <End Role="WMInv_Part1" EntitySet="WMInv_Part" />
+          </AssociationSet>
+          <EntitySet Name="WMInv_PartInventoryProperty" EntityType="AshaERPModel.WMInv_PartInventoryProperty" />
+          <EntitySet Name="WMInv_PartSerial" EntityType="AshaERPModel.WMInv_PartSerial" />
+          <AssociationSet Name="FK_WMInv_PartInventoryProperty_WMInv_Part" Association="AshaERPModel.FK_WMInv_PartInventoryProperty_WMInv_Part">
+            <End Role="WMInv_Part" EntitySet="WMInv_Part" />
+            <End Role="WMInv_PartInventoryProperty" EntitySet="WMInv_PartInventoryProperty" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WMInv_PartSerialNumber_WMInv_Part" Association="AshaERPModel.FK_WMInv_PartSerialNumber_WMInv_Part">
+            <End Role="WMInv_Part" EntitySet="WMInv_Part" />
+            <End Role="WMInv_PartSerial" EntitySet="WMInv_PartSerial" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="WMInv_PartInventoryProperty">
+          <Key>
+            <PropertyRef Name="PartCode" />
+          </Key>
+          <Property Name="PartCode" Type="String" Nullable="false" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="Title" Type="String" MaxLength="1024" FixedLength="false" Unicode="true" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="InventoryCode" Type="String" Nullable="false" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="InventorySequenceCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="InventoryABCCategoryCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="MainInventory" Type="Boolean" />
+          <Property Name="LotControl" Type="Boolean" Nullable="false" />
+          <Property Name="ActiveQuantityBaseStock" Type="Boolean" Nullable="false" />
+          <Property Name="CreatorCode" Type="String" Nullable="false" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Note" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Guid" Type="Guid" />
+          <NavigationProperty Name="WMInv_Part" Relationship="AshaERPModel.FK_WMInv_PartInventoryProperty_WMInv_Part" FromRole="WMInv_PartInventoryProperty" ToRole="WMInv_Part" />
+        </EntityType>
+        <EntityType Name="WMInv_PartSerial">
+          <Key>
+            <PropertyRef Name="Code" />
+          </Key>
+          <Property Name="Code" Type="String" Nullable="false" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="PartCode" Type="String" Nullable="false" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="ParentPartSerialCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="ParentPartCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="WorkOrderCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="PurchaseShipmentCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="SalesShipmentCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="StatusCode" Type="String" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="CreatorCode" Type="String" Nullable="false" MaxLength="64" FixedLength="false" Unicode="true" />
+          <Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Note" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Guid" Type="Guid" />
+          <NavigationProperty Name="WMInv_Part" Relationship="AshaERPModel.FK_WMInv_PartSerialNumber_WMInv_Part" FromRole="WMInv_PartSerial" ToRole="WMInv_Part" />
+        </EntityType>
+        <Association Name="FK_WMInv_PartInventoryProperty_WMInv_Part">
+          <End Type="AshaERPModel.WMInv_Part" Role="WMInv_Part" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="AshaERPModel.WMInv_PartInventoryProperty" Role="WMInv_PartInventoryProperty" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="WMInv_Part">
+              <PropertyRef Name="Code" />
+            </Principal>
+            <Dependent Role="WMInv_PartInventoryProperty">
+              <PropertyRef Name="PartCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WMInv_PartSerialNumber_WMInv_Part">
+          <End Type="AshaERPModel.WMInv_Part" Role="WMInv_Part" Multiplicity="1" />
+          <End Type="AshaERPModel.WMInv_PartSerial" Role="WMInv_PartSerial" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WMInv_Part">
+              <PropertyRef Name="Code" />
+            </Principal>
+            <Dependent Role="WMInv_PartSerial">
+              <PropertyRef Name="PartCode" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="AshaERPModelStoreContainer" CdmEntityContainer="AshaERPEntities">
+          <EntitySetMapping Name="WMInv_Part">
+            <EntityTypeMapping TypeName="AshaERPModel.WMInv_Part">
+              <MappingFragment StoreEntitySet="WMInv_Part">
+                <ScalarProperty Name="Code" ColumnName="Code" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Barcode" ColumnName="Barcode" />
+                <ScalarProperty Name="CommercialTitle" ColumnName="CommercialTitle" />
+                <ScalarProperty Name="LatinTitle" ColumnName="LatinTitle" />
+                <ScalarProperty Name="UnitOfMeasureCode" ColumnName="UnitOfMeasureCode" />
+                <ScalarProperty Name="PartTypeCode" ColumnName="PartTypeCode" />
+                <ScalarProperty Name="PartStatusCode" ColumnName="PartStatusCode" />
+                <ScalarProperty Name="SubstitutePartCode" ColumnName="SubstitutePartCode" />
+                <ScalarProperty Name="StandardCost" ColumnName="StandardCost" />
+                <ScalarProperty Name="InventoryProperty" ColumnName="InventoryProperty" />
+                <ScalarProperty Name="PurchasingProperty" ColumnName="PurchasingProperty" />
+                <ScalarProperty Name="EngineeringProperty" ColumnName="EngineeringProperty" />
+                <ScalarProperty Name="ManufacturingProperty" ColumnName="ManufacturingProperty" />
+                <ScalarProperty Name="SalesProperty" ColumnName="SalesProperty" />
+                <ScalarProperty Name="QCProperty" ColumnName="QCProperty" />
+                <ScalarProperty Name="ConsumptionPlace" ColumnName="ConsumptionPlace" />
+                <ScalarProperty Name="UnitValue" ColumnName="UnitValue" />
+                <ScalarProperty Name="PackingBoxRatio" ColumnName="PackingBoxRatio" />
+                <ScalarProperty Name="CreatorCode" ColumnName="CreatorCode" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="Note" ColumnName="Note" />
+                <ScalarProperty Name="Picture" ColumnName="Picture" />
+                <ScalarProperty Name="Guid" ColumnName="Guid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WMInv_PartInventoryProperty">
+            <EntityTypeMapping TypeName="AshaERPModel.WMInv_PartInventoryProperty">
+              <MappingFragment StoreEntitySet="WMInv_PartInventoryProperty">
+                <ScalarProperty Name="Guid" ColumnName="Guid" />
+                <ScalarProperty Name="Note" ColumnName="Note" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="CreatorCode" ColumnName="CreatorCode" />
+                <ScalarProperty Name="ActiveQuantityBaseStock" ColumnName="ActiveQuantityBaseStock" />
+                <ScalarProperty Name="LotControl" ColumnName="LotControl" />
+                <ScalarProperty Name="MainInventory" ColumnName="MainInventory" />
+                <ScalarProperty Name="InventoryABCCategoryCode" ColumnName="InventoryABCCategoryCode" />
+                <ScalarProperty Name="InventorySequenceCode" ColumnName="InventorySequenceCode" />
+                <ScalarProperty Name="InventoryCode" ColumnName="InventoryCode" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="PartCode" ColumnName="PartCode" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WMInv_PartSerial">
+            <EntityTypeMapping TypeName="AshaERPModel.WMInv_PartSerial">
+              <MappingFragment StoreEntitySet="WMInv_PartSerial">
+                <ScalarProperty Name="Guid" ColumnName="Guid" />
+                <ScalarProperty Name="Note" ColumnName="Note" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="CreatorCode" ColumnName="CreatorCode" />
+                <ScalarProperty Name="StatusCode" ColumnName="StatusCode" />
+                <ScalarProperty Name="SalesShipmentCode" ColumnName="SalesShipmentCode" />
+                <ScalarProperty Name="PurchaseShipmentCode" ColumnName="PurchaseShipmentCode" />
+                <ScalarProperty Name="WorkOrderCode" ColumnName="WorkOrderCode" />
+                <ScalarProperty Name="ParentPartCode" ColumnName="ParentPartCode" />
+                <ScalarProperty Name="ParentPartSerialCode" ColumnName="ParentPartSerialCode" />
+                <ScalarProperty Name="PartCode" ColumnName="PartCode" />
+                <ScalarProperty Name="Code" ColumnName="Code" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
