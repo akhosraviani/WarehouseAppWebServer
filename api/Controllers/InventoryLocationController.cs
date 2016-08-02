@@ -45,7 +45,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/InventoryLocation/GetAllOpen")]
@@ -77,7 +76,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
         [Route("asha/InventoryLocation/{id}")]
         [HttpGet]
@@ -108,7 +106,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/InventoryLocation/GetInventoryLocations/{InventoryCode}")]
@@ -140,7 +137,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
         // POST asha/InventoryLocation
         public HttpResponseMessage Post([FromBody]string value)

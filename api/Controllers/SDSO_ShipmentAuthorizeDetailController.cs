@@ -46,7 +46,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_ShipmentAuthorizeDetail/GetAllLoading")]
@@ -90,7 +89,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_ShipmentAuthorizeDetail/{id}/Details")]

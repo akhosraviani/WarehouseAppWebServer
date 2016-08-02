@@ -46,7 +46,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/PhysicalWarehousing/GetAllOpen")]
@@ -78,7 +77,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
         [Route("asha/PhysicalWarehousing/{id}")]
         [HttpGet]
@@ -109,7 +107,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/PhysicalWarehousing/{id}/Details")]
@@ -141,7 +138,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/PhysicalWarehousing/{phlWMCode}")]
@@ -202,7 +198,7 @@ namespace api.Controllers
                             cmd.ExecuteNonQuery();
                             return Request.CreateResponse(HttpStatusCode.OK, seq);
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             return Request.CreateResponse(HttpStatusCode.NotFound);
                         }
@@ -258,7 +254,7 @@ namespace api.Controllers
                             cmd.ExecuteNonQuery();
                             return Request.CreateResponse(HttpStatusCode.OK);
                         }
-                        catch(Exception e)
+                        catch(Exception)
                         {
                             return Request.CreateResponse(HttpStatusCode.NotFound);
                         }

@@ -97,7 +97,6 @@ namespace api.Controllers
                     }
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.Forbidden);
         }
         // GET asha/Authenticate/arash?pass=123
         public HttpResponseMessage Get(string id, string pass)

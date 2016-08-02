@@ -41,7 +41,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_Shipment/GetAllLoading")]
@@ -73,38 +72,41 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
-        [Route("asha/SDSO_Shipment/{id}")]
+        [Route("asha/SDSO_Shipment/CheckLoading/{id}")]
         [HttpGet]
         public object Get(string id)
         {
             DataTable dt = new DataTable();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            Dictionary<string, object> row;
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM SDSO_Shipment WHERE Code = '" + id + "'"
+                using (SqlCommand cmd = new SqlCommand("SELECT * FROM SDSO_Shipment WHERE FormStatusCode = 'Shp_Loading' AND Code = '" + id + "'"
                                                         , con))
                 {
                     con.Open();
                     SqlDataAdapter da = new SqlDataAdapter(cmd);
                     da.Fill(dt);
                     System.Web.Script.Serialization.JavaScriptSerializer serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
-                    List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-                    Dictionary<string, object> row;
-                    foreach (DataRow dr in dt.Rows)
+
+                    row = new Dictionary<string, object>();
+                    if(dt.Rows.Count > 0)
                     {
-                        row = new Dictionary<string, object>();
-                        foreach (DataColumn col in dt.Columns)
-                        {
-                            row.Add(col.ColumnName, dr[col]);
-                        }
+                        row.Add("Status", "Valid");
                         rows.Add(row);
+                        return Request.CreateResponse(HttpStatusCode.OK, rows);
                     }
-                    return Request.CreateResponse(HttpStatusCode.OK, rows);
+                    else
+                    {
+                        row.Add("Status", "InValid");
+                        rows.Add(row);
+                        return Request.CreateResponse(HttpStatusCode.NotFound, rows);
+                    }
+                    
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_Shipment/{id}/Details")]
@@ -139,7 +141,6 @@ namespace api.Controllers
                     return Request.CreateResponse(HttpStatusCode.OK, rows);
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_Shipment/{shipmentCode}")]
@@ -147,7 +148,7 @@ namespace api.Controllers
         public HttpResponseMessage Post(string shipmentCode, [FromBody]object value)
         {
             JObject jsonValue = value as JObject;
-            int seq = 0;
+            //int seq = 0;
 
             if (jsonValue != null)
             {
@@ -263,15 +264,16 @@ namespace api.Controllers
                         string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
 
                         row.Add("Message", returnMessage);
+                        rows.Add(row);
+                        return Request.CreateResponse(HttpStatusCode.OK, rows);
                     }
                     catch (Exception e)
                     {
                         row.Add("Message", e.Message);
+                        return Request.CreateResponse(HttpStatusCode.NotFound);
                     }
                 }
             }
-            rows.Add(row);
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_Shipment/{shipmentCode}/{PartSerialCode}")]
@@ -304,13 +306,12 @@ namespace api.Controllers
                         cmd.ExecuteNonQuery();
                         return Request.CreateResponse(HttpStatusCode.OK);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         return Request.CreateResponse(HttpStatusCode.NotFound);
                     }
                 }
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
     }
 }
