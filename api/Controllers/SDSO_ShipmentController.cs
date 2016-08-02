@@ -144,7 +144,6 @@ namespace api.Controllers
 
         [Route("asha/SDSO_Shipment/{shipmentCode}")]
         [HttpPost]
-        // POST asha/SDSO_Shipment/{phlWMCode}
         public HttpResponseMessage Post(string shipmentCode, [FromBody]object value)
         {
             JObject jsonValue = value as JObject;
@@ -175,27 +174,38 @@ namespace api.Controllers
                         if (con.State == ConnectionState.Closed)
                             con.Open();
 
-                        using (SqlCommand cmd = new SqlCommand("EXEC SDSO_001_ShipmentPartSerial @shipmentCode, @PartSerialCode, 'Ship', '1', '', 1"
+                        using (SqlCommand cmd = new SqlCommand("SDSO_001_ShipmentPartSerial"
                                                                 , con))
                         {
-                            if (String.IsNullOrEmpty(shipmentCode))
-                                cmd.Parameters.AddWithValue("@shipmentCode", DBNull.Value);
-                            else
-                                cmd.Parameters.AddWithValue("@shipmentCode", shipmentCode);
+                            cmd.CommandType = CommandType.StoredProcedure;
 
-                            if (String.IsNullOrEmpty(PartSerialCode))
-                                cmd.Parameters.AddWithValue("@PartSerialCode", DBNull.Value);
-                            else
-                                cmd.Parameters.AddWithValue("@PartSerialCode", PartSerialCode);
+                            // set up the parameters
+                            cmd.Parameters.Add("@shipmentCode", SqlDbType.NVarChar, 64);
+                            cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
+                            cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
+                            cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                            cmd.Parameters.Add("@@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                            cmd.Parameters.Add("@@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
+
+                            // set parameter values
+                            cmd.Parameters["@shipmentCode"].Value = shipmentCode;
+                            cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
+                            cmd.Parameters["@Mode"].Value = "ship";
+                            cmd.Parameters["@CreatorCode"].Value = "1";
+                            cmd.Parameters["@ReturnMessage"].Value = "";
+                            cmd.Parameters["@ReturnValue"].Value = 1;
 
                             try
                             {
                                 cmd.ExecuteNonQuery();
-                                row.Add("Message", "Saved Correctly");
+                                // read output value from @NewId
+                                string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+
+                                row.Add(@PartSerialCode, returnMessage);
                             }
                             catch (Exception e)
                             {
-                                row.Add("Message", e.Message);
+                                row.Add(@PartSerialCode, e.Message);
                             }
                         }
                     }
