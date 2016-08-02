@@ -200,12 +200,13 @@ namespace api.Controllers
                                 cmd.ExecuteNonQuery();
                                 // read output value from @NewId
                                 string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+                                int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
 
-                                row.Add(@PartSerialCode, returnMessage);
+                                row.Add("Message", returnMessage);
                             }
                             catch (Exception e)
                             {
-                                row.Add(@PartSerialCode, e.Message);
+                                row.Add("Message", e.Message);
                             }
                         }
                     }
@@ -217,60 +218,60 @@ namespace api.Controllers
             return Request.CreateResponse(HttpStatusCode.BadRequest);
         }
 
-        [Route("asha/SDSO_Shipment/{phlWMCode}/{sequence}")]
+        [Route("asha/SDSO_Shipment/CompleteLoading/{shipmentCode}")]
         [HttpPut]
-        // PUT asha/PhysicalWarehousing/5
-        public HttpResponseMessage Put(string phlWMCode, int sequence, [FromBody]object value)
+        public HttpResponseMessage Put(string shipmentCode, [FromBody]object value)
         {
-            JObject jsonValue = value as JObject;
+            Dictionary<string, object> row = new Dictionary<string, object>();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            row = new Dictionary<string, object>();
 
-            if (jsonValue != null)
+            using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                                  ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                var quantity = (decimal)jsonValue["QTY"];
-                var location = (string)jsonValue["Location"];
-                var lotCode = (string)jsonValue["LotCode"];
 
-                using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
-                                                             ConnectionStrings["AshaERPEntities"].ConnectionString))
+                if (con.State == ConnectionState.Closed)
+                    con.Open();
+
+                using (SqlCommand cmd = new SqlCommand("SDSO_001_ShipmentStatus"
+                                                        , con))
                 {
-                    if (con.State == ConnectionState.Closed)
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    // set up the parameters
+                    cmd.Parameters.Add("@ShipmentCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@StatusCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@NewStatusCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@PositionCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
+
+                    // set parameter values
+                    cmd.Parameters["@shipmentCode"].Value = shipmentCode;
+                    cmd.Parameters["@StatusCode"].Value = "Shp_Loading";
+                    cmd.Parameters["@NewStatusCode"].Value = "Shp_SecondWeighing";
+                    cmd.Parameters["@PositionCode"].Value = "Pos_999";
+                    cmd.Parameters["@CreatorCode"].Value = "1";
+                    cmd.Parameters["@ReturnMessage"].Value = "";
+                    cmd.Parameters["@ReturnValue"].Value = 1;
+
+                    try
                     {
-                        con.Open();
+                        cmd.ExecuteNonQuery();
+                        // read output value from @NewId
+                        string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+
+                        row.Add("Message", returnMessage);
                     }
-                    using (SqlCommand cmd = new SqlCommand("UPDATE WMPhl_PhysicalWarehousingDetail SET LocationCode=@LocationCode, LotCode=@LotCode, FirstCountQty=@FirstCountQty WHERE PhlWMCode=@PhlWMCode AND Sequence=@Sequence"
-                                                            , con))
+                    catch (Exception e)
                     {
-                        if (String.IsNullOrEmpty(location))
-                        {
-                            cmd.Parameters.AddWithValue("@LocationCode", DBNull.Value);
-                        }
-                        else
-                            cmd.Parameters.AddWithValue("@LocationCode", location);
-
-                        if (String.IsNullOrEmpty(location))
-                        {
-                            cmd.Parameters.AddWithValue("@LotCode", DBNull.Value);
-                        }
-                        else
-                            cmd.Parameters.AddWithValue("@LotCode", lotCode);
-
-                        cmd.Parameters.AddWithValue("@FirstCountQty", quantity);
-                        cmd.Parameters.AddWithValue("@PhlWMCode", phlWMCode);
-                        cmd.Parameters.AddWithValue("@Sequence", sequence);
-                        try
-                        {
-                            cmd.ExecuteNonQuery();
-                            return Request.CreateResponse(HttpStatusCode.OK);
-                        }
-                        catch(Exception e)
-                        {
-                            return Request.CreateResponse(HttpStatusCode.NotFound);
-                        }
+                        row.Add("Message", e.Message);
                     }
                 }
             }
-
-            return Request.CreateResponse(HttpStatusCode.BadRequest);
+            rows.Add(row);
+            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_Shipment/{shipmentCode}/{PartSerialCode}")]
