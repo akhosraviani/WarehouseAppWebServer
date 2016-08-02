@@ -1,16 +1,11 @@
-﻿using api.Data;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 using System.Web.Http;
 
 namespace api.Controllers
@@ -159,7 +154,6 @@ namespace api.Controllers
             {
                 JToken PartSerialToken;
                 jsonValue.TryGetValue("PartSerialCode", out PartSerialToken);
-                var ShipmentAuthorizeCode = (string)jsonValue["ShipmentAuthorizeCode"]; 
 
                 if (PartSerialToken.Count() <= 0)
                     return Request.CreateResponse(HttpStatusCode.BadRequest);
@@ -181,14 +175,9 @@ namespace api.Controllers
                         if (con.State == ConnectionState.Closed)
                             con.Open();
 
-                        using (SqlCommand cmd = new SqlCommand("EXEC SDSO_001_ShipmentPartSerial @ShipmentAuthorizeCode, @shipmentCode, @PartSerialCode, 'Ship', '1', '', 1"
+                        using (SqlCommand cmd = new SqlCommand("EXEC SDSO_001_ShipmentPartSerial @shipmentCode, @PartSerialCode, 'Ship', '1', '', 1"
                                                                 , con))
                         {
-                            if (String.IsNullOrEmpty(ShipmentAuthorizeCode))
-                                cmd.Parameters.AddWithValue("@ShipmentAuthorizeCode", DBNull.Value);
-                            else
-                                cmd.Parameters.AddWithValue("@ShipmentAuthorizeCode", ShipmentAuthorizeCode);
-
                             if (String.IsNullOrEmpty(shipmentCode))
                                 cmd.Parameters.AddWithValue("@shipmentCode", DBNull.Value);
                             else
@@ -274,7 +263,7 @@ namespace api.Controllers
             return Request.CreateResponse(HttpStatusCode.BadRequest);
         }
 
-        [Route("asha/SDSO_Shipment/{shipmentCode}/{PartSerialCode}/{ShipmentAuthorizeCode}")]
+        [Route("asha/SDSO_Shipment/{shipmentCode}/{PartSerialCode}")]
         [HttpDelete]
         // DELETE asha/SDSO_Shipment/5
         public HttpResponseMessage Delete(string shipmentCode, string PartSerialCode, string ShipmentAuthorizeCode)
@@ -286,14 +275,9 @@ namespace api.Controllers
                 {
                     con.Open();
                 }
-                using (SqlCommand cmd = new SqlCommand("EXEC SDSO_001_ShipmentPartSerial @ShipmentAuthorizeCode, @shipmentCode, @PartSerialCode, 'Delete', '1', '', 1"
+                using (SqlCommand cmd = new SqlCommand("EXEC SDSO_001_ShipmentPartSerial @shipmentCode, @PartSerialCode, 'Delete', '1', '', 1"
                                                                 , con))
                 {
-                    if (String.IsNullOrEmpty(ShipmentAuthorizeCode))
-                        cmd.Parameters.AddWithValue("@ShipmentAuthorizeCode", DBNull.Value);
-                    else
-                        cmd.Parameters.AddWithValue("@ShipmentAuthorizeCode", ShipmentAuthorizeCode);
-
                     if (String.IsNullOrEmpty(shipmentCode))
                         cmd.Parameters.AddWithValue("@shipmentCode", DBNull.Value);
                     else
