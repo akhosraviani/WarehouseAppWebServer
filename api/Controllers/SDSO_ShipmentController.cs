@@ -184,8 +184,8 @@ namespace api.Controllers
                             cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
                             cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
                             cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
-                            cmd.Parameters.Add("@@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
-                            cmd.Parameters.Add("@@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
+                            cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                            cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                             // set parameter values
                             cmd.Parameters["@shipmentCode"].Value = shipmentCode;
@@ -276,7 +276,7 @@ namespace api.Controllers
         [Route("asha/SDSO_Shipment/{shipmentCode}/{PartSerialCode}")]
         [HttpDelete]
         // DELETE asha/SDSO_Shipment/5
-        public HttpResponseMessage Delete(string shipmentCode, string PartSerialCode, string ShipmentAuthorizeCode)
+        public HttpResponseMessage Delete(string shipmentCode, string PartSerialCode)
         {
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
