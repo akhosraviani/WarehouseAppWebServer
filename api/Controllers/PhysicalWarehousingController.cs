@@ -56,7 +56,7 @@ namespace api.Controllers
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT Code, Title, InventoryCode FROM WMPhl_PhysicalWarehousing WHERE FormStatusCode = 'Open'"
+                using (SqlCommand cmd = new SqlCommand("SELECT a.Code, a.Title, b.Code AS InventoryCode, b.Title AS InventoryTitle FROM WMPhl_PhysicalWarehousing as A INNER JOIN WMInv_Inventory as B ON a.InventoryCode = b.Code WHERE FormStatusCode = 'Open'"
                                                         , con))
                 {
                     con.Open();
@@ -117,7 +117,40 @@ namespace api.Controllers
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT A.Sequence AS Sequence, A.PartCode AS PartCode, B.Title AS PartTitle, A.FirstCountQty AS QTY, A.UnitOfMeasureCode AS UOM FROM WMPhl_PhysicalWarehousingDetail AS A INNER JOIN WMInv_Part AS B ON A.PartCode = B.Code WHERE PhlWMCode = '" + id + "'"
+                using (SqlCommand cmd = new SqlCommand("SELECT A.Sequence AS Sequence, A.PartCode AS PartCode, B.Title AS PartTitle, A.FirstCountQty AS QTY, A.UnitOfMeasureCode AS UOM, c.Title AS UOMTitle FROM WMPhl_PhysicalWarehousingDetail AS A INNER JOIN WMInv_Part AS B ON A.PartCode = B.Code INNER JOIN WMUM_UnitOfMeasure AS C ON a.UnitOfMeasureCode = c.Code WHERE PhlWMCode = '" + id + "'"
+                                                        , con))
+                {
+                    con.Open();
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    da.Fill(dt);
+                    System.Web.Script.Serialization.JavaScriptSerializer serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+                    List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+                    Dictionary<string, object> row;
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        row = new Dictionary<string, object>();
+                        foreach (DataColumn col in dt.Columns)
+                        {
+                            row.Add(col.ColumnName, dr[col]);
+                        }
+                        rows.Add(row);
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, rows);
+                }
+            }
+        }
+
+        [Route("asha/PhysicalWarehousing/{id}/PartCodes")]
+        [HttpGet]
+        public object GetPartCodes(string id)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                         ConnectionStrings["AshaERPEntities"].ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SELECT ROW_NUMBER() OVER (Order by B.PartCode) AS Sequence, B.PartCode AS PartCode, C.Title AS PartTitle, B.UnitOfMeasureCode AS UOM, c.Title AS UOMTitle " +
+                        "FROM WMPhl_PhysicalWarehousing AS A INNER JOIN WMInv_InventoryStock AS B ON A.InventoryCode = B.InventoryCode INNER JOIN WMInv_Part AS C ON B.PartCode = C.Code INNER JOIN WMUM_UnitOfMeasure AS D ON B.UnitOfMeasureCode = D.Code " +
+                        "WHERE A.Code = '" + id + "'"
                                                         , con))
                 {
                     con.Open();
@@ -209,6 +242,70 @@ namespace api.Controllers
             return Request.CreateResponse(HttpStatusCode.BadRequest);
         }
 
+        //[Route("asha/PhysicalWarehousing/Serial/{phlWMCode}")]
+        //[HttpPost]
+        //public HttpResponseMessage Post(string phlWMCode, [FromBody]object value)
+        //{
+        //    JObject jsonValue = value as JObject;
+        //    int seq = 0;
+
+        //    if (jsonValue != null)
+        //    {
+        //        var lotCode = (string)jsonValue["PartSerial"];
+        //        var partCode = (string)jsonValue["PartCode"];
+
+        //        using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+        //                                                     ConnectionStrings["AshaERPEntities"].ConnectionString))
+        //        {
+
+        //            if (con.State == ConnectionState.Closed)
+        //                con.Open();
+
+        //            using (SqlCommand cmd = new SqlCommand("SELECT MAX(Sequence) AS Sequence FROM WMPhl_PhysicalWarehousingDetail WHERE PhlWMCode = '" + phlWMCode + "'"
+        //                                               , con))
+        //            {
+        //                DataTable dt = new DataTable();
+        //                SqlDataAdapter da = new SqlDataAdapter(cmd);
+        //                da.Fill(dt);
+        //                if (dt.Rows.Count == 1)
+        //                    seq = Convert.ToInt32(dt.Rows[0][0]) + 1;
+        //                else
+        //                    seq = 1;
+        //            }
+
+        //            using (SqlCommand cmd = new SqlCommand("INSERT INTO WMPhl_PhysicalWarehousingDetail(PhlWMCode, Sequence, PartCode, LocationCode, LotCode, UnitOfMeasureCode, FirstCountQty, CompletionStatus, CreatorCode, CreationDate, Note) VALUES(@PhlWMCode, @Sequence, @PartCode, @LocationCode, @LotCode, @UnitOfMeasureCode, @FirstCountQty, 0, 1, GETDATE(), @PartCode)"
+        //                                                    , con))
+        //            {
+        //                if (String.IsNullOrEmpty(location))
+        //                    cmd.Parameters.AddWithValue("@LocationCode", DBNull.Value);
+        //                else
+        //                    cmd.Parameters.AddWithValue("@LocationCode", location);
+
+        //                if (String.IsNullOrEmpty(location))
+        //                    cmd.Parameters.AddWithValue("@LotCode", DBNull.Value);
+        //                else
+        //                    cmd.Parameters.AddWithValue("@LotCode", lotCode);
+
+        //                cmd.Parameters.AddWithValue("@FirstCountQty", quantity);
+        //                cmd.Parameters.AddWithValue("@PhlWMCode", phlWMCode);
+        //                cmd.Parameters.AddWithValue("@Sequence", seq);
+        //                cmd.Parameters.AddWithValue("@PartCode", partCode);
+        //                cmd.Parameters.AddWithValue("@UnitOfMeasureCode", UOM);
+        //                try
+        //                {
+        //                    cmd.ExecuteNonQuery();
+        //                    return Request.CreateResponse(HttpStatusCode.OK, seq);
+        //                }
+        //                catch (Exception)
+        //                {
+        //                    return Request.CreateResponse(HttpStatusCode.NotFound);
+        //                }
+        //            }
+        //        }
+        //    }
+
+        //    return Request.CreateResponse(HttpStatusCode.BadRequest);
+        //}
         [Route("asha/PhysicalWarehousing/{phlWMCode}/{sequence}")]
         [HttpPut]
         // PUT asha/PhysicalWarehousing/5
