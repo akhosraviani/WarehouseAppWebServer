@@ -242,70 +242,85 @@ namespace api.Controllers
             return Request.CreateResponse(HttpStatusCode.BadRequest);
         }
 
-        //[Route("asha/PhysicalWarehousing/Serial/{phlWMCode}")]
-        //[HttpPost]
-        //public HttpResponseMessage Post(string phlWMCode, [FromBody]object value)
-        //{
-        //    JObject jsonValue = value as JObject;
-        //    int seq = 0;
+        [Route("asha/PhysicalWarehousing/SerialWarehousing/{phlWMCode}")]
+        [HttpPost]
+        public HttpResponseMessage SerialWarehousing(string phlWMCode, [FromBody]object value)
+        {
+            JObject jsonValue = value as JObject;
+            int seq = 0;
+            Dictionary<string, object> row = new Dictionary<string, object>();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            row = new Dictionary<string, object>();
 
-        //    if (jsonValue != null)
-        //    {
-        //        var lotCode = (string)jsonValue["PartSerial"];
-        //        var partCode = (string)jsonValue["PartCode"];
+            if (jsonValue != null)
+            {
+                var PartSerialCode = (string)jsonValue["PartSerialCode"];
+                var userCode = (string)jsonValue["UserCode"];
 
-        //        using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
-        //                                                     ConnectionStrings["AshaERPEntities"].ConnectionString))
-        //        {
+                using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                                  ConnectionStrings["AshaERPEntities"].ConnectionString))
+                {
 
-        //            if (con.State == ConnectionState.Closed)
-        //                con.Open();
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
 
-        //            using (SqlCommand cmd = new SqlCommand("SELECT MAX(Sequence) AS Sequence FROM WMPhl_PhysicalWarehousingDetail WHERE PhlWMCode = '" + phlWMCode + "'"
-        //                                               , con))
-        //            {
-        //                DataTable dt = new DataTable();
-        //                SqlDataAdapter da = new SqlDataAdapter(cmd);
-        //                da.Fill(dt);
-        //                if (dt.Rows.Count == 1)
-        //                    seq = Convert.ToInt32(dt.Rows[0][0]) + 1;
-        //                else
-        //                    seq = 1;
-        //            }
+                    using (SqlCommand cmd = new SqlCommand("WMPhl_001_PhysicalProduct"
+                                                            , con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-        //            using (SqlCommand cmd = new SqlCommand("INSERT INTO WMPhl_PhysicalWarehousingDetail(PhlWMCode, Sequence, PartCode, LocationCode, LotCode, UnitOfMeasureCode, FirstCountQty, CompletionStatus, CreatorCode, CreationDate, Note) VALUES(@PhlWMCode, @Sequence, @PartCode, @LocationCode, @LotCode, @UnitOfMeasureCode, @FirstCountQty, 0, 1, GETDATE(), @PartCode)"
-        //                                                    , con))
-        //            {
-        //                if (String.IsNullOrEmpty(location))
-        //                    cmd.Parameters.AddWithValue("@LocationCode", DBNull.Value);
-        //                else
-        //                    cmd.Parameters.AddWithValue("@LocationCode", location);
+                        // set up the parameters
+                        cmd.Parameters.Add("@PhlWMCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                        cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
-        //                if (String.IsNullOrEmpty(location))
-        //                    cmd.Parameters.AddWithValue("@LotCode", DBNull.Value);
-        //                else
-        //                    cmd.Parameters.AddWithValue("@LotCode", lotCode);
+                        // set parameter values
+                        cmd.Parameters["@PhlWMCode"].Value = phlWMCode;
+                        cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
+                        cmd.Parameters["@Mode"].Value = "SingleCount";
+                        cmd.Parameters["@CreatorCode"].Value = userCode;
+                        cmd.Parameters["@ReturnMessage"].Value = "";
+                        cmd.Parameters["@ReturnValue"].Value = 1;
 
-        //                cmd.Parameters.AddWithValue("@FirstCountQty", quantity);
-        //                cmd.Parameters.AddWithValue("@PhlWMCode", phlWMCode);
-        //                cmd.Parameters.AddWithValue("@Sequence", seq);
-        //                cmd.Parameters.AddWithValue("@PartCode", partCode);
-        //                cmd.Parameters.AddWithValue("@UnitOfMeasureCode", UOM);
-        //                try
-        //                {
-        //                    cmd.ExecuteNonQuery();
-        //                    return Request.CreateResponse(HttpStatusCode.OK, seq);
-        //                }
-        //                catch (Exception)
-        //                {
-        //                    return Request.CreateResponse(HttpStatusCode.NotFound);
-        //                }
-        //            }
-        //        }
-        //    }
+                        try
+                        {
+                            cmd.ExecuteNonQuery();
+                            // read output value from @NewId
+                            string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+                            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
 
-        //    return Request.CreateResponse(HttpStatusCode.BadRequest);
-        //}
+                            if(returnValue == 1)
+                            {
+                                row.Add("Message", "");
+                                rows.Add(row);
+                                row.Add("PartCode", returnMessage);
+                                rows.Add(row);
+                            }
+                            else
+                            {
+                                row.Add("Message", returnMessage);
+                                rows.Add(row);
+                                row.Add("PartCode", "");
+                                rows.Add(row);
+                            }
+
+                            return Request.CreateResponse(HttpStatusCode.OK, rows);
+                        }
+                        catch (Exception e)
+                        {
+                            row.Add("Message", e.Message);
+                            return Request.CreateResponse(HttpStatusCode.NotFound);
+                        }
+                    }
+                }
+            }
+
+            return Request.CreateResponse(HttpStatusCode.BadRequest);
+        }
+
         [Route("asha/PhysicalWarehousing/{phlWMCode}/{sequence}")]
         [HttpPut]
         // PUT asha/PhysicalWarehousing/5

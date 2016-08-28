@@ -77,6 +77,7 @@ namespace api.Controllers
         [HttpGet]
         public object Get(string id)
         {
+            id = id.ToLower().StartsWith("sh95_0") ? id : "sh95_0" + id;
             DataTable dt = new DataTable();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
@@ -113,6 +114,7 @@ namespace api.Controllers
         [HttpGet]
         public object GetDetails(string id)
         {
+            id = id.ToLower().StartsWith("sh95_0") ? id : "sh95_0" + id;
             DataTable dt = new DataTable();
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
@@ -143,80 +145,113 @@ namespace api.Controllers
             }
         }
 
+        [Route("asha/SDSO_Shipment/{id}/SerialDetails")]
+        [HttpGet]
+        public object GetSerialDetails(string id)
+        {
+            id = id.ToLower().StartsWith("sh95_0") ? id : "sh95_0" + id;
+            DataTable dt = new DataTable();
+            using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                         ConnectionStrings["AshaERPEntities"].ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SELECT SDSO_ShipmentDetail.PartSerialCode " +
+                                                       "FROM SDSO_ShipmentDetail " +
+                                                       "WHERE SDSO_ShipmentDetail.ShipmentCode = '" + id + "'"
+                                                        , con))
+                {
+                    con.Open();
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    da.Fill(dt);
+                    System.Web.Script.Serialization.JavaScriptSerializer serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+                    List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+                    Dictionary<string, object> row;
+                    foreach (DataRow dr in dt.Rows)
+                    {
+                        row = new Dictionary<string, object>();
+                        foreach (DataColumn col in dt.Columns)
+                        {
+                            row.Add(col.ColumnName, dr[col]);
+                        }
+                        rows.Add(row);
+                    }
+                    return Request.CreateResponse(HttpStatusCode.OK, rows);
+                }
+            }
+        }
+
         [Route("asha/SDSO_Shipment/{shipmentCode}")]
         [HttpPost]
         public HttpResponseMessage Post(string shipmentCode, [FromBody]object value)
         {
+            Dictionary<string, object> row = new Dictionary<string, object>();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            row = new Dictionary<string, object>();
             JObject jsonValue = value as JObject;
             //int seq = 0;
+            row.Add("JsonValue", jsonValue);
+
+
 
             if (jsonValue != null)
             {
-                JToken PartSerialToken;
-                jsonValue.TryGetValue("PartSerialCode", out PartSerialToken);
+                var PartSerialCode = (string)jsonValue["PartSerialCode"];
 
-                if (PartSerialToken.Count() <= 0)
-                    return Request.CreateResponse(HttpStatusCode.BadRequest);
-           
+                row.Add("parsed", PartSerialCode);
 
-                Dictionary<string, object> row = new Dictionary<string, object>();
-                List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+                
 
-                for (int i = 0; i < PartSerialToken.Count(); i++)
+
+                row.Add("ProductSerialCode", PartSerialCode);
+
+                using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                                ConnectionStrings["AshaERPEntities"].ConnectionString))
                 {
-                    var PartSerialCode = PartSerialToken.ElementAt(i).ToString();
-                    row = new Dictionary<string, object>();
-                    row.Add("ProductSerialCode", PartSerialCode);
 
-                    using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
-                                                                 ConnectionStrings["AshaERPEntities"].ConnectionString))
+                    if (con.State == ConnectionState.Closed)
+                        con.Open();
+
+                    using (SqlCommand cmd = new SqlCommand("SDSO_001_ShipmentPartSerial"
+                                                            , con))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-                        if (con.State == ConnectionState.Closed)
-                            con.Open();
+                        // set up the parameters
+                        cmd.Parameters.Add("@shipmentCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                        cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
-                        using (SqlCommand cmd = new SqlCommand("SDSO_001_ShipmentPartSerial"
-                                                                , con))
+                        // set parameter values
+                        cmd.Parameters["@shipmentCode"].Value = shipmentCode.ToLower().StartsWith("sh95_0") ? shipmentCode : "sh95_0" + shipmentCode;
+                        cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
+                        cmd.Parameters["@Mode"].Value = "ship";
+                        cmd.Parameters["@CreatorCode"].Value = "1";
+                        cmd.Parameters["@ReturnMessage"].Value = "";
+                        cmd.Parameters["@ReturnValue"].Value = 1;
+
+                        try
                         {
-                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.ExecuteNonQuery();
+                            // read output value from @NewId
+                            string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+                            int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
 
-                            // set up the parameters
-                            cmd.Parameters.Add("@shipmentCode", SqlDbType.NVarChar, 64);
-                            cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
-                            cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
-                            cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
-                            cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
-                            cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
-
-                            // set parameter values
-                            cmd.Parameters["@shipmentCode"].Value = shipmentCode;
-                            cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
-                            cmd.Parameters["@Mode"].Value = "ship";
-                            cmd.Parameters["@CreatorCode"].Value = "1";
-                            cmd.Parameters["@ReturnMessage"].Value = "";
-                            cmd.Parameters["@ReturnValue"].Value = 1;
-
-                            try
-                            {
-                                cmd.ExecuteNonQuery();
-                                // read output value from @NewId
-                                string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
-                                int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
-
-                                row.Add("Message", returnMessage);
-                            }
-                            catch (Exception e)
-                            {
-                                row.Add("Message", e.Message);
-                            }
+                            row.Add("Message", returnMessage);
+                        }
+                        catch (Exception e)
+                        {
+                            row.Add("Message", e.Message);
                         }
                     }
-                    rows.Add(row);
                 }
+                rows.Add(row);
                 return Request.CreateResponse(HttpStatusCode.OK, rows);
             }
-
-            return Request.CreateResponse(HttpStatusCode.BadRequest);
+            rows.Add(row);
+            return Request.CreateResponse(HttpStatusCode.OK, rows);
         }
 
         [Route("asha/SDSO_Shipment/CompleteLoading/{shipmentCode}")]
@@ -249,7 +284,7 @@ namespace api.Controllers
                     cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                     // set parameter values
-                    cmd.Parameters["@shipmentCode"].Value = shipmentCode;
+                    cmd.Parameters["@shipmentCode"].Value = shipmentCode.ToLower().StartsWith("sh95_0") ? shipmentCode : "sh95_0" + shipmentCode;
                     cmd.Parameters["@StatusCode"].Value = "Shp_Loading";
                     cmd.Parameters["@NewStatusCode"].Value = "Shp_SecondWeighing";
                     cmd.Parameters["@PositionCode"].Value = "Pos_999";
@@ -281,6 +316,9 @@ namespace api.Controllers
         // DELETE asha/SDSO_Shipment/5
         public HttpResponseMessage Delete(string shipmentCode, string PartSerialCode)
         {
+            Dictionary<string, object> row = new Dictionary<string, object>();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
@@ -288,30 +326,45 @@ namespace api.Controllers
                 {
                     con.Open();
                 }
-                using (SqlCommand cmd = new SqlCommand("EXEC SDSO_001_ShipmentPartSerial @shipmentCode, @PartSerialCode, 'Delete', '1', '', 1"
+                using (SqlCommand cmd = new SqlCommand("SDSO_001_ShipmentPartSerial"
                                                                 , con))
                 {
-                    if (String.IsNullOrEmpty(shipmentCode))
-                        cmd.Parameters.AddWithValue("@shipmentCode", DBNull.Value);
-                    else
-                        cmd.Parameters.AddWithValue("@shipmentCode", shipmentCode);
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                    if (String.IsNullOrEmpty(PartSerialCode))
-                        cmd.Parameters.AddWithValue("@PartSerialCode", DBNull.Value);
-                    else
-                        cmd.Parameters.AddWithValue("@PartSerialCode", PartSerialCode);
+                    // set up the parameters
+                    cmd.Parameters.Add("@shipmentCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
+
+                    // set parameter values
+                    cmd.Parameters["@shipmentCode"].Value = shipmentCode.ToLower().StartsWith("sh95_0") ? shipmentCode : "sh95_0" + shipmentCode;
+                    cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
+                    cmd.Parameters["@Mode"].Value = "Delete";
+                    cmd.Parameters["@CreatorCode"].Value = "1";
+                    cmd.Parameters["@ReturnMessage"].Value = "";
+                    cmd.Parameters["@ReturnValue"].Value = 1;
 
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        return Request.CreateResponse(HttpStatusCode.OK);
+                        // read output value from @NewId
+                        string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+                        int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+
+                        row.Add("Message", returnMessage);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        return Request.CreateResponse(HttpStatusCode.NotFound);
+                        row.Add("Message", e.Message);
                     }
                 }
+                rows.Add(row);
+                return Request.CreateResponse(HttpStatusCode.OK, rows);
             }
+            return Request.CreateResponse(HttpStatusCode.BadRequest);
         }
     }
 }
