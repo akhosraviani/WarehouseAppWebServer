@@ -377,10 +377,68 @@ namespace api.Controllers
             return Request.CreateResponse(HttpStatusCode.BadRequest);
         }
 
-        // DELETE asha/Authenticate/5
-        public void Delete(int id)
+        [Route("asha/PhysicalWarehousing/SerialWarehousing/{phlWMCode}/{PartSerialCode}")]
+        [HttpDelete]
+        public HttpResponseMessage Delete(string phlWMCode, string PartSerialCode)
         {
-            Request.CreateResponse(HttpStatusCode.NotImplemented);
+            Dictionary<string, object> row = new Dictionary<string, object>();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                                ConnectionStrings["AshaERPEntities"].ConnectionString))
+            {
+
+                if (con.State == ConnectionState.Closed)
+                    con.Open();
+
+                using (SqlCommand cmd = new SqlCommand("WMPhl_001_PhysicalProductDelete"
+                                                        , con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    // set up the parameters
+                    cmd.Parameters.Add("@PhlWMCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
+
+                    // set parameter values
+                    cmd.Parameters["@PhlWMCode"].Value = phlWMCode;
+                    cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
+                    cmd.Parameters["@Mode"].Value = "SingleCount";
+                    cmd.Parameters["@CreatorCode"].Value = "1";
+                    cmd.Parameters["@ReturnMessage"].Value = "";
+                    cmd.Parameters["@ReturnValue"].Value = 1;
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        // read output value from @NewId
+                        string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+                        int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+
+                        if (returnValue == 1)
+                        {
+                            row.Add("Message", "Done Successfuly");
+                            rows.Add(row);
+                        }
+                        else
+                        {
+                            row.Add("Message", "Failed");
+                            rows.Add(row);
+                        }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, rows);
+                    }
+                    catch (Exception e)
+                    {
+                        row.Add("Message", e.Message);
+                        return Request.CreateResponse(HttpStatusCode.NotFound);
+                    }
+                }
+            }
         }
     }
 }
