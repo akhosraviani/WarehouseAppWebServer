@@ -84,7 +84,7 @@ namespace api.Controllers
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM SDSO_Shipment WHERE FormStatusCode = 'Shp_Loading' AND Code = '" + id + "'"
+                using (SqlCommand cmd = new SqlCommand("SELECT top 1 a.Code, b.CarrierNumber, a.VehicleCapacity FROM SDSO_Shipment AS a INNER JOIN WMLog_Vehicle AS b ON a.VehicleCode = b.Code WHERE FormStatusCode = 'Shp_Loading' AND a.Code = '" + id + "'"
                                                         , con))
                 {
                     con.Open();
@@ -95,19 +95,25 @@ namespace api.Controllers
                     row = new Dictionary<string, object>();
                     if(dt.Rows.Count > 0)
                     {
-                        row.Add("Status", "Valid");
-                        rows.Add(row);
+                        foreach (DataRow dr in dt.Rows)
+                        {
+                            row = new Dictionary<string, object>();
+                            foreach (DataColumn col in dt.Columns)
+                            {
+                                row.Add(col.ColumnName, dr[col]);
+                            }
+                            rows.Add(row);
+                        }
+
                         return Request.CreateResponse(HttpStatusCode.OK, rows);
                     }
                     else
                     {
-                        row.Add("Status", "InValid");
-                        rows.Add(row);
-                        return Request.CreateResponse(HttpStatusCode.NotFound, rows);
+                        return Request.CreateResponse(HttpStatusCode.OK, rows);
                     }
-                    
                 }
             }
+            return Request.CreateResponse(HttpStatusCode.NotFound);
         }
 
         [Route("asha/SDSO_Shipment/{id}/Details")]
