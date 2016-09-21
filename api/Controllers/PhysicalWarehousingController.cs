@@ -56,7 +56,7 @@ namespace api.Controllers
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT a.Code, a.Title, b.Code AS InventoryCode, b.Title AS InventoryTitle FROM WMPhl_PhysicalWarehousing as A INNER JOIN WMInv_Inventory as B ON a.InventoryCode = b.Code WHERE FormStatusCode = 'Open'"
+                using (SqlCommand cmd = new SqlCommand("SELECT a.Code, a.Title, b.Code AS InventoryCode, b.Title AS InventoryTitle FROM WMPhl_PhysicalWarehousing as A INNER JOIN WMInv_Inventory as B ON a.InventoryCode = b.Code WHERE FormStatusCode = 'Open' AND Serialized=1"
                                                         , con))
                 {
                     con.Open();
@@ -256,6 +256,7 @@ namespace api.Controllers
             {
                 var PartSerialCode = (string)jsonValue["PartSerialCode"];
                 var userCode = (string)jsonValue["UserCode"];
+                var tagNumber = (string)jsonValue["TagNumber"];
 
                 using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                                   ConnectionStrings["AshaERPEntities"].ConnectionString))
@@ -264,13 +265,14 @@ namespace api.Controllers
                     if (con.State == ConnectionState.Closed)
                         con.Open();
 
-                    using (SqlCommand cmd = new SqlCommand("WMPhl_001_PhysicalProduct"
+                    using (SqlCommand cmd = new SqlCommand("WMPhl_001_SerialInsert"
                                                             , con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
 
                         // set up the parameters
                         cmd.Parameters.Add("@PhlWMCode", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@@TagNumber", SqlDbType.NVarChar, 64);
                         cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
                         cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
                         cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
@@ -279,6 +281,7 @@ namespace api.Controllers
 
                         // set parameter values
                         cmd.Parameters["@PhlWMCode"].Value = phlWMCode;
+                        cmd.Parameters["@TagNumber"].Value = tagNumber;
                         cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
                         cmd.Parameters["@Mode"].Value = "SingleCount";
                         cmd.Parameters["@CreatorCode"].Value = userCode;
@@ -292,11 +295,13 @@ namespace api.Controllers
                             string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
                             int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
 
-                            if(returnValue == 1)
+                            if(returnValue >= 1)
                             {
                                 row.Add("Message", "");
                                 rows.Add(row);
                                 row.Add("PartCode", returnMessage);
+                                rows.Add(row);
+                                row.Add("Quantity", returnValue);
                                 rows.Add(row);
                             }
                             else
@@ -391,7 +396,7 @@ namespace api.Controllers
                 if (con.State == ConnectionState.Closed)
                     con.Open();
 
-                using (SqlCommand cmd = new SqlCommand("WMPhl_001_PhysicalProductDelete"
+                using (SqlCommand cmd = new SqlCommand("WMPhl_001_SerialDelete"
                                                         , con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
