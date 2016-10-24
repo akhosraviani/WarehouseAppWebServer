@@ -77,14 +77,14 @@ namespace api.Controllers
         [HttpGet]
         public object Get(string id)
         {
-            id = id.ToLower().StartsWith("sh95_0") ? id : "sh95_0" + id;
+            id = id.PadLeft(8, '0');
             DataTable dt = new DataTable();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             Dictionary<string, object> row;
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SELECT top 1 a.Code, b.CarrierNumber, a.VehicleCapacity FROM SDSO_Shipment AS a INNER JOIN WMLog_Vehicle AS b ON a.VehicleCode = b.Code WHERE FormStatusCode = 'Shp_Loading' AND a.Code = '" + id + "'"
+                using (SqlCommand cmd = new SqlCommand("SELECT top 1 a.Code, b.CarrierNumber, a.VehicleCapacity FROM SDSO_Shipment AS a INNER JOIN WMLog_Vehicle AS b ON a.VehicleCode = b.Code WHERE (FormStatusCode = 'Shp_Loading' OR FormStatusCode = 'Shp_SecondWeighing') AND a.Code = '" + id + "'"
                                                         , con))
                 {
                     con.Open();
@@ -120,7 +120,7 @@ namespace api.Controllers
         [HttpGet]
         public object GetDetails(string id)
         {
-            id = id.ToLower().StartsWith("sh95_0") ? id : "sh95_0" + id;
+            id = id.PadLeft(8, '0');
             DataTable dt = new DataTable();
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
@@ -155,7 +155,7 @@ namespace api.Controllers
         [HttpGet]
         public object GetSerialDetails(string id)
         {
-            id = id.ToLower().StartsWith("sh95_0") ? id : "sh95_0" + id;
+            id = id.PadLeft(8, '0');
             DataTable dt = new DataTable();
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
@@ -231,10 +231,10 @@ namespace api.Controllers
                         cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                         // set parameter values
-                        cmd.Parameters["@shipmentCode"].Value = shipmentCode.ToLower().StartsWith("sh95_0") ? shipmentCode : "sh95_0" + shipmentCode;
+                        cmd.Parameters["@shipmentCode"].Value = shipmentCode.PadLeft(8, '0');
                         cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
                         cmd.Parameters["@Mode"].Value = "ship";
-                        cmd.Parameters["@CreatorCode"].Value = "1";
+                        cmd.Parameters["@CreatorCode"].Value = "40004273";
                         cmd.Parameters["@ReturnMessage"].Value = "";
                         cmd.Parameters["@ReturnValue"].Value = 1;
 
@@ -290,11 +290,11 @@ namespace api.Controllers
                     cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                     // set parameter values
-                    cmd.Parameters["@shipmentCode"].Value = shipmentCode.ToLower().StartsWith("sh95_0") ? shipmentCode : "sh95_0" + shipmentCode;
+                    cmd.Parameters["@shipmentCode"].Value = shipmentCode.PadLeft(8, '0');
                     cmd.Parameters["@StatusCode"].Value = "Shp_Loading";
                     cmd.Parameters["@NewStatusCode"].Value = "Shp_SecondWeighing";
                     cmd.Parameters["@PositionCode"].Value = "Pos_999";
-                    cmd.Parameters["@CreatorCode"].Value = "1";
+                    cmd.Parameters["@CreatorCode"].Value = "40004273";
                     cmd.Parameters["@ReturnMessage"].Value = "";
                     cmd.Parameters["@ReturnValue"].Value = 1;
 
@@ -346,10 +346,10 @@ namespace api.Controllers
                     cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
 
                     // set parameter values
-                    cmd.Parameters["@shipmentCode"].Value = shipmentCode.ToLower().StartsWith("sh95_0") ? shipmentCode : "sh95_0" + shipmentCode;
+                    cmd.Parameters["@shipmentCode"].Value = shipmentCode.PadLeft(8, '0');
                     cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
                     cmd.Parameters["@Mode"].Value = "Delete";
-                    cmd.Parameters["@CreatorCode"].Value = "1";
+                    cmd.Parameters["@CreatorCode"].Value = "40004273";
                     cmd.Parameters["@ReturnMessage"].Value = "";
                     cmd.Parameters["@ReturnValue"].Value = 1;
 

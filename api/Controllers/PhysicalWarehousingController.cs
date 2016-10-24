@@ -272,7 +272,7 @@ namespace api.Controllers
 
                         // set up the parameters
                         cmd.Parameters.Add("@PhlWMCode", SqlDbType.NVarChar, 64);
-                        cmd.Parameters.Add("@@TagNumber", SqlDbType.NVarChar, 64);
+                        cmd.Parameters.Add("@TagNumber", SqlDbType.NVarChar, 64);
                         cmd.Parameters.Add("@PartSerialCode", SqlDbType.NVarChar, 64);
                         cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
                         cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
