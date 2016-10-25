@@ -197,16 +197,13 @@ namespace api.Controllers
             //int seq = 0;
             row.Add("JsonValue", jsonValue);
 
-
+            string UserCode = "40004273";
 
             if (jsonValue != null)
             {
                 var PartSerialCode = (string)jsonValue["PartSerialCode"];
-
+                UserCode = (string)jsonValue["UserCode"];
                 row.Add("parsed", PartSerialCode);
-
-                
-
 
                 row.Add("ProductSerialCode", PartSerialCode);
 
@@ -234,7 +231,7 @@ namespace api.Controllers
                         cmd.Parameters["@shipmentCode"].Value = shipmentCode.PadLeft(8, '0');
                         cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
                         cmd.Parameters["@Mode"].Value = "ship";
-                        cmd.Parameters["@CreatorCode"].Value = "40004273";
+                        cmd.Parameters["@CreatorCode"].Value = UserCode;
                         cmd.Parameters["@ReturnMessage"].Value = "";
                         cmd.Parameters["@ReturnValue"].Value = 1;
 
@@ -267,9 +264,15 @@ namespace api.Controllers
             Dictionary<string, object> row = new Dictionary<string, object>();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
             row = new Dictionary<string, object>();
+            string UserCode = "40004273";
 
+            JObject jsonValue = value as JObject;
+            if (jsonValue != null)
+            {
+                UserCode = (string)jsonValue["UserCode"];
+            }
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
-                                                                  ConnectionStrings["AshaERPEntities"].ConnectionString))
+                                                                    ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
 
                 if (con.State == ConnectionState.Closed)
@@ -294,7 +297,7 @@ namespace api.Controllers
                     cmd.Parameters["@StatusCode"].Value = "Shp_Loading";
                     cmd.Parameters["@NewStatusCode"].Value = "Shp_SecondWeighing";
                     cmd.Parameters["@PositionCode"].Value = "Pos_999";
-                    cmd.Parameters["@CreatorCode"].Value = "40004273";
+                    cmd.Parameters["@CreatorCode"].Value = UserCode;
                     cmd.Parameters["@ReturnMessage"].Value = "";
                     cmd.Parameters["@ReturnValue"].Value = 1;
 
@@ -325,6 +328,9 @@ namespace api.Controllers
             Dictionary<string, object> row = new Dictionary<string, object>();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
 
+            string UserCode = "40004273";
+
+
             using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
                                                          ConnectionStrings["AshaERPEntities"].ConnectionString))
             {
@@ -349,7 +355,7 @@ namespace api.Controllers
                     cmd.Parameters["@shipmentCode"].Value = shipmentCode.PadLeft(8, '0');
                     cmd.Parameters["@PartSerialCode"].Value = PartSerialCode;
                     cmd.Parameters["@Mode"].Value = "Delete";
-                    cmd.Parameters["@CreatorCode"].Value = "40004273";
+                    cmd.Parameters["@CreatorCode"].Value = UserCode;
                     cmd.Parameters["@ReturnMessage"].Value = "";
                     cmd.Parameters["@ReturnValue"].Value = 1;
 

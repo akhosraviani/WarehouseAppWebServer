@@ -246,7 +246,7 @@ namespace api.Controllers
         [HttpPost]
         public HttpResponseMessage SerialWarehousing(string phlWMCode, [FromBody]object value)
         {
-            JObject jsonValue = value as JObject;
+             JObject jsonValue = value as JObject;
             int seq = 0;
             Dictionary<string, object> row = new Dictionary<string, object>();
             List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
