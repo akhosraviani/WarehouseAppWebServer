@@ -445,5 +445,69 @@ namespace api.Controllers
                 }
             }
         }
+
+        [Route("asha/PhysicalWarehousing/WarehousingWithPDA/{PartID}/{Mode}/{Quantity}")]
+        [HttpDelete]
+        public HttpResponseMessage WarehousingWithPDA(string PartID, string Mode, decimal Quantity)
+        {
+            Dictionary<string, object> row = new Dictionary<string, object>();
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+
+            using (SqlConnection con = new SqlConnection(System.Configuration.ConfigurationManager.
+                                                                ConnectionStrings["AshaERPEntities"].ConnectionString))
+            {
+
+                if (con.State == ConnectionState.Closed)
+                    con.Open();
+
+                using (SqlCommand cmd = new SqlCommand("WMPhl_000_WarehousingWithPDA"
+                                                        , con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    // set up the parameters
+                    cmd.Parameters.Add("@PartID", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@Mode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@Quantity", SqlDbType.Decimal);
+                    cmd.Parameters.Add("@CreatorCode", SqlDbType.NVarChar, 64);
+                    cmd.Parameters.Add("@ReturnMessage", SqlDbType.NVarChar, 1024).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("@ReturnValue", SqlDbType.Int).Direction = ParameterDirection.Output;
+
+                    // set parameter values
+                    cmd.Parameters["@PartID"].Value = PartID;
+                    cmd.Parameters["@Mode"].Value = Mode;
+                    cmd.Parameters["@Quantity"].Value = Quantity;
+                    cmd.Parameters["@CreatorCode"].Value = "1";
+                    cmd.Parameters["@ReturnMessage"].Value = "";
+                    cmd.Parameters["@ReturnValue"].Value = 1;
+
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        // read output value from @NewId
+                        string returnMessage = Convert.ToString(cmd.Parameters["@ReturnMessage"].Value);
+                        int returnValue = Convert.ToInt32(cmd.Parameters["@ReturnValue"].Value);
+
+                        if (returnValue == 1)
+                        {
+                            row.Add("Message", "Done Successfuly");
+                            rows.Add(row);
+                        }
+                        else
+                        {
+                            row.Add("Message", "Failed");
+                            rows.Add(row);
+                        }
+
+                        return Request.CreateResponse(HttpStatusCode.OK, rows);
+                    }
+                    catch (Exception e)
+                    {
+                        row.Add("Message", e.Message);
+                        return Request.CreateResponse(HttpStatusCode.NotFound);
+                    }
+                }
+            }
+        }
     }
 }
